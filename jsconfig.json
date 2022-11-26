@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
     "baseUrl": "./",
+    "jsx": "preserve",
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "ScriptHost"],
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "paths": {
       "/src/*": ["src/*"]
     },
+    "target": "ESNext",
     "types": ["element-plus/global"]
   },
   "include": [
