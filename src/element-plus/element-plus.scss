@@ -1,18 +1,26 @@
-// -- 通用 --
+// 覆盖默认变量
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    'primary': (
+      'base': #2196F3,
+    ),
+    'success': (
+      'base': #67C23A,
+    ),
+    'warning': (
+      'base': #FF9800,
+    ),
+    'danger': (
+      'base': #F44336,
+    ),
+    'error': (
+      'base': #F44336,
+    ),
+    'info': (
+      'base': #909399,
+    ),
+  ),
+);
 
-// 覆盖变量
-:root {
-  --el-border-radius-base: 0;
-  --el-border-radius-small: 0;
-  --el-popover-border-radius: 0;
-}
-
-// -- 输入框 --
-
-.el-input__wrapper {
-  padding: 0.2em 0.75em;
-}
-
-.el-textarea__inner {
-  padding: 0.5em 0.75em;
-}
+// 导入所有样式
+@use 'element-plus/theme-chalk/src/index.scss' as *;
