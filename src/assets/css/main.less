@@ -1,8 +1,54 @@
 :root {
-  font-size: 16px;
+  --block-margin: 1rem;
+  --block-padding: 1rem;
+  --block-radius: 0.5rem;
+  --block-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.1);
+  --color-gray-light: #F0F0F0;
+  --line-height: 1.25;
+  --scrollbar-size: 0.5rem;
 }
 
-html, body {
+// 滚动条
+::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+::-webkit-scrollbar-corner {
+  display: none;
+}
+::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 1rem;
+  background-color: #DFDFDF;
+
+  &:hover {
+    background-color: #CCCCCC
+  }
+}
+
+html, body, #app {
+  position: relative;
   width: 100%;
   height: 100%;
+}
+
+html {
+  color: #252525;
+  font-family: sans-serif;
+  font-size: 16px;
+  line-height: var(--line-height);
+}
+
+#app {
+  display: flex;
+  flex-direction: row;
+  padding: 2rem;
+  background-color: var(--color-gray-light);
+  user-select: none;
+
+  > div {
+    height: 100%;
+  }
 }
