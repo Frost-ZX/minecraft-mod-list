@@ -1,0 +1,22 @@
+{
+  "name": "minecraft-mod-list",
+  "version": "1.0.0",
+  "author": {
+    "name": "Frost-ZX"
+  },
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite serve",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.2.41"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^3.2.0",
+    "less": "^4.1.3",
+    "vite": "^3.2.3"
+  }
+}
