@@ -1,0 +1,18 @@
+// -- 通用 --
+
+// 覆盖变量
+:root {
+  --el-border-radius-base: 0;
+  --el-border-radius-small: 0;
+  --el-popover-border-radius: 0;
+}
+
+// -- 输入框 --
+
+.el-input__wrapper {
+  padding: 0.2em 0.75em;
+}
+
+.el-textarea__inner {
+  padding: 0.5em 0.75em;
+}
