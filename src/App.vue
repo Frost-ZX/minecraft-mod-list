@@ -10,7 +10,7 @@
         <el-radio-group v-model="state.currModType">
           <el-radio
             :border="true"
-            :label="'all'"
+            :label="'ALL'"
             class="mod-type-item"
           >全部</el-radio>
           <el-radio
@@ -66,8 +66,8 @@ import ModItem from './components/ModItem.vue';
 
 const state = shallowReactive({
 
-  /** 当前模组类型 */
-  currModType: 'all',
+  /** 当前模组类型名称 */
+  currModType: 'ALL',
 
   /** 当前显示的模组列表 */
   modList: [],
@@ -103,16 +103,16 @@ async function initModList() {
 
     for (let typeName in MOD_TYPES) {
 
-      let info = MOD_TYPES[typeName];
-      let jsURL = info.file; // JavaScript 文件地址
-      let jsKey = info.key;  // 在 `window` 对象中的属性名
+      let typeInfo = MOD_TYPES[typeName];
+      let jsURL = typeInfo.file; // JavaScript 文件地址
+      let jsKey = typeInfo.key;  // 在 `window` 对象中的属性名
 
       let load = await loadScript(jsURL);
       let list = null;
 
       // 处理类型信息默认值
-      info.label = info.label ?? '未知';
-      info.required = info.required ?? false;
+      typeInfo.label = typeInfo.label ?? '未知';
+      typeInfo.required = typeInfo.required ?? false;
 
       if (load.success) {
         list = window[jsKey];
@@ -125,16 +125,20 @@ async function initModList() {
       }
 
       if (Array.isArray(list)) {
+
+        let isRequired = typeInfo.required;
         let usedIds = [];
-        // 处理模组列表
+
+        // 处理模组列表数据
         for (let i = list.length - 1; i >= 0; i--) {
-          let item = list[i];
-          let id = item.id || 'unknown';
+          let modInfo = list[i];
+          let id = modInfo.id || 'unknown';
           if (!usedIds.includes(id)) {
             // 记录模组 ID
             usedIds.push(id);
-            // 写入类型名称
-            item.type = typeName;
+            // 同步类型信息
+            modInfo.required = isRequired;
+            modInfo.type = typeName;
           } else {
             // 提示重复信息
             $message({
@@ -146,9 +150,11 @@ async function initModList() {
             list.splice(i, 1);
           }
         }
+
         // 写入列表和类型信息
         modList.push.apply(modList, list);
-        modTypes[typeName] = info;
+        modTypes[typeName] = typeInfo;
+
       }
 
     }
@@ -170,8 +176,8 @@ async function initModList() {
  * @description 切换模组列表
  * @param {string} type 模组类型名称
  */
-function updateModList(type = 'all') {
-  if (type === 'all') {
+function updateModList(type = 'ALL') {
+  if (type === 'ALL') {
     // [全部模组]
     state.modList = mods.list;
   } else {
@@ -184,10 +190,8 @@ function updateModList(type = 'all') {
 
 onMounted(() => {
 
-  console.log('APP_CONFIG', APP_CONFIG);
-
   initModList().then((success) => {
-    success && updateModList('all');
+    success && updateModList();
   });
 
 });
@@ -236,6 +240,7 @@ onMounted(() => {
   flex-direction: column;
   flex-grow: 1;
   width: 0;
+  max-width: 60rem;
 
   > div {
     width: 100%;

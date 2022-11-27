@@ -1,5 +1,5 @@
 <template>
-  <div class="mod-item">
+  <div class="mod-item" :class="{ required: data.required }">
 
     <!-- 模组图标 -->
     <div class="mod-icon" :data-t="iconText"></div>
@@ -8,7 +8,7 @@
     <div class="mod-info">
       <div class="mod-name">
         <span v-text="primaryName"></span>
-        <span v-show="secondaryName" v-text="secondaryName"></span>
+        <span v-show="secondaryName">（{{ secondaryName }}）</span>
       </div>
       <div class="mod-desc">{{ data.description || '...' }}</div>
       <div class="mod-version">
@@ -54,6 +54,7 @@ const iconText = computed(() => {
 <style lang="less" scoped>
 .mod-item {
   display: flex;
+  position: relative;
   padding: var(--block-padding);
   border-radius: var(--block-radius);
   background-color: #FFF;
@@ -61,6 +62,19 @@ const iconText = computed(() => {
 
   &:not(:first-child) {
     margin-top: var(--block-margin);
+  }
+
+  &.required::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    background-color: var(--color-red);
+    font-size: 0.5rem;
   }
 }
 
@@ -95,6 +109,9 @@ const iconText = computed(() => {
 .mod-name {
   font-size: 1.25em;
   font-weight: bold;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mod-desc {
@@ -107,6 +124,7 @@ const iconText = computed(() => {
 }
 
 .mod-version {
+  height: calc(1em * var(--line-height));
   font-size: 0.875em;
   opacity: 0.8;
 }

@@ -24,3 +24,11 @@
 
 // 导入所有样式
 @use 'element-plus/theme-chalk/src/index.scss' as *;
+
+:root {
+  --color-blue: #2196F3;
+  --color-gray: #909399;
+  --color-green: #67C23A;
+  --color-red: #F44336;
+  --color-yellow: #FF9800;
+}

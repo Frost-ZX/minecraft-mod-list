@@ -4,7 +4,7 @@ const CONFIG_DEFAULT = {
   APP_VERSION: '1.0.0',
 
   LIST_AUTHOR: '',
-  LIST_UPDATE: '',
+  LIST_VERSION: '',
 
   MOD_TYPES: {},
 
