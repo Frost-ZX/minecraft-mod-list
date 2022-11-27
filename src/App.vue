@@ -215,8 +215,6 @@ onMounted(() => {
 <style lang="less">
 // 侧边栏
 .app-aside {
-  flex-shrink: 0;
-  margin-right: var(--block-margin);
   width: 16rem;
 
   .aside-block {
@@ -285,10 +283,8 @@ onMounted(() => {
 
 // 内容区域
 .app-content {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  width: 0;
+  margin-left: var(--block-margin);
+  width: calc(100% - 16rem - var(--block-margin));
   max-width: 60rem;
 
   > div {
@@ -298,7 +294,6 @@ onMounted(() => {
 
 // 操作栏
 .actions {
-  flex-shrink: 0;
   padding: var(--block-padding);
   box-shadow: var(--block-shadow);
   border-radius: var(--block-radius);
@@ -311,9 +306,6 @@ onMounted(() => {
 
 // 模组列表
 .mod-list {
-  flex-grow: 1;
   margin-top: var(--block-margin);
-  height: 0;
-  overflow-y: scroll;
 }
 </style>

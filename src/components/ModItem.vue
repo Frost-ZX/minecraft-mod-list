@@ -56,6 +56,7 @@ const iconText = computed(() => {
   display: flex;
   position: relative;
   padding: var(--block-padding);
+  box-shadow: var(--block-shadow);
   border-radius: var(--block-radius);
   background-color: #FFF;
   font-size: 1rem;
