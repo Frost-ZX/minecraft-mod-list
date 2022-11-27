@@ -69,6 +69,9 @@
 
   </div>
 
+  <!-- 返回顶部 -->
+  <to-top />
+
 </template>
 
 <script setup>
@@ -78,6 +81,7 @@ import { APP_CONFIG } from './assets/js/config';
 import { $message, loadScript } from './assets/js/utils';
 
 import ModItem from './components/ModItem.vue';
+import ToTop from './components/ToTop.vue';
 
 const state = shallowReactive({
 
