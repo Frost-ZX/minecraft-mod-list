@@ -6,10 +6,7 @@
 
     <!-- 模组信息 -->
     <div class="mod-info">
-      <div class="mod-name">
-        <span v-text="primaryName"></span>
-        <span v-show="secondaryName">（{{ secondaryName }}）</span>
-      </div>
+      <div class="mod-name">{{ data.fullName }}</div>
       <div class="mod-desc">{{ data.description || '...' }}</div>
       <div class="mod-version">
         <span v-show="data.version">V{{ data.version }}</span>
@@ -35,19 +32,10 @@ const props = defineProps({
 
 });
 
-/** 模组主要名称 */
-const primaryName = computed(() => {
-  return props.data.names?.[0] || 'Unknown';
-});
-
-/** 模组次要名称 */
-const secondaryName = computed(() => {
-  return props.data.names?.[1] || '';
-});
-
 /** 模组图标文本 */
 const iconText = computed(() => {
-  return String(primaryName.value).substring(0, 2).toUpperCase();
+  const fullName = String(props.data.fullName || '');
+  return fullName.substring(0, 2).toUpperCase();
 });
 </script>
 

@@ -50,10 +50,15 @@
         v-model="state.searchKeyword"
         class="search-input"
         placeholder="搜索..."
-        disabled
+        :clearable="true"
+        @blur="searchModList"
+        @keydown.enter="searchModList"
       >
         <template #prefix>
-          <span class="mdi mdi-magnify"></span>
+          <span
+            class="mdi mdi-magnify"
+            @click="searchModList"
+          ></span>
         </template>
       </el-input>
     </div>
@@ -152,10 +157,13 @@ async function initModList() {
         for (let i = list.length - 1; i >= 0; i--) {
           let modInfo = list[i];
           let id = modInfo.id || 'unknown';
+          let pName = modInfo.names?.[0] || 'Unknown';
+          let sName = modInfo.names?.[1] || '';
           if (!usedIds.includes(id)) {
             // 记录模组 ID
             usedIds.push(id);
-            // 同步类型信息
+            // 更新模组信息
+            modInfo.fullName = (pName + (sName ? `（${sName}）` : ''));
             modInfo.required = isRequired;
             modInfo.type = typeName;
           } else {
@@ -191,20 +199,28 @@ async function initModList() {
   }
 }
 
+/** 搜索模组 */
+function searchModList() {
+  updateModList(state.currModType);
+}
+
 /**
  * @description 切换模组列表
- * @param {string} type 模组类型名称
+ * @param {string} typeName 模组类型名称
  */
-function updateModList(type = 'ALL') {
-  if (type === 'ALL') {
-    // [全部模组]
-    state.modList = mods.list;
-  } else {
-    // [指定类型]
-    state.modList = mods.list.filter((item) => {
-      return (item.type === type);
-    });
-  }
+function updateModList(typeName = 'ALL') {
+
+  const all = (typeName === 'ALL');
+  const kw = state.searchKeyword.toLocaleLowerCase();
+
+  state.modList = mods.list.filter((item) => {
+    const { fullName = '', type = '' } = item;
+    return (
+      (all || type === typeName) &&
+      (!kw || fullName.toLocaleLowerCase().includes(kw))
+    );
+  });
+
 }
 
 onMounted(() => {
@@ -303,8 +319,13 @@ onMounted(() => {
   border-radius: var(--block-radius);
   background-color: #FFF;
 
-  .search-input .el-input__prefix {
-    font-size: 1.125rem;
+  .search-input {
+    max-width: 20rem;;
+
+    .el-input__prefix {
+      font-size: 1.125rem;
+      cursor: pointer;
+    }
   }
 }
 
