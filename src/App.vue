@@ -3,6 +3,21 @@
   <!-- 侧边栏 -->
   <div class="app-aside">
 
+    <!-- 信息栏 -->
+    <div class="aside-block list-info">
+      <div class="block-title">列表信息</div>
+      <div class="block-content">
+        <p>
+          <span class="label">列表作者</span>
+          <span class="text">{{ APP_CONFIG.LIST_AUTHOR || '无' }}</span>
+        </p>
+        <p>
+          <span class="label">列表版本</span>
+          <span class="text">{{ APP_CONFIG.LIST_VERSION || '无' }}</span>
+        </p>
+      </div>
+    </div>
+
     <!-- 模组类型列表 -->
     <div class="aside-block mod-types">
       <div class="block-title">模组类型</div>
@@ -209,11 +224,45 @@ onMounted(() => {
     box-shadow: var(--block-shadow);
     border-radius: var(--block-radius);
     background-color: #FFF;
+
+    &:not(:first-child) {
+      margin-top: var(--block-margin);
+    }
   }
 
   .block-title {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
     font-weight: bold;
+  }
+
+  .block-content {
+    font-size: 0.875rem;
+  }
+}
+
+// 信息栏
+.list-info {
+  p {
+    display: flex;
+
+    &:not(:first-child) {
+      margin-top: 0.5em;
+    }
+  }
+
+  .label {
+    flex-shrink: 0;
+    text-align: right;
+
+    &::after {
+      content: "\FF1A";
+    }
+  }
+
+  .text {
+    width: 0;
+    flex-grow: 1;
   }
 }
 
