@@ -15,6 +15,36 @@
           <span class="label">列表版本</span>
           <span class="text">{{ APP_CONFIG.LIST_VERSION || '无' }}</span>
         </p>
+        <p>
+          <span class="label">模组数量</span>
+          <span class="text">{{ state.modList.length }}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- 页面导航 -->
+    <div class="aside-block pages-nav">
+      <div class="block-title">页面导航</div>
+      <div class="block-content">
+
+        <!-- 固定链接 -->
+        <el-button
+          type="primary"
+          size="small"
+          disabled
+          plain
+        >关于</el-button>
+
+        <!-- 动态链接 -->
+        <el-button
+          v-for="(item, index) in APP_CONFIG.NAV_LINKS"
+          :key="index"
+          type="success"
+          size="small"
+          plain
+          @click="openLink(item.url)"
+        >{{ item.label }}</el-button>
+
       </div>
     </div>
 
@@ -22,20 +52,27 @@
     <div class="aside-block mod-types">
       <div class="block-title">模组类型</div>
       <div class="block-content">
-        <el-radio-group v-model="state.currModType">
-          <el-radio
-            :border="true"
-            :label="'ALL'"
-            class="mod-type-item"
-          >全部</el-radio>
-          <el-radio
-            v-for="(item, typeName) of mods.types"
+
+        <el-checkbox
+          v-model="state.checkAll"
+          :border="true"
+          :indeterminate="state.checkIndeterminate"
+          @change="handleCheckAllChange"
+        >全部</el-checkbox>
+
+        <el-checkbox-group
+          v-model="state.checkedTypes"
+          @change="handleCheckItemsChange"
+        >
+          <el-checkbox
+             v-for="(item, typeName) of mods.types"
             :key="typeName"
             :border="true"
             :label="typeName"
             class="mod-type-item"
-          >{{ item.label }}</el-radio>
-        </el-radio-group>
+          >{{ item.label }}</el-checkbox>
+        </el-checkbox-group>
+
       </div>
     </div>
 
@@ -80,7 +117,7 @@
 </template>
 
 <script setup>
-import { shallowReactive, watch, onMounted } from 'vue';
+import { computed, shallowReactive, watch, onMounted } from 'vue';
 
 import { APP_CONFIG } from './assets/js/config';
 import { $message, loadScript } from './assets/js/utils';
@@ -90,8 +127,17 @@ import ToTop from './components/ToTop.vue';
 
 const state = shallowReactive({
 
-  /** 当前模组类型名称 */
-  currModType: 'ALL',
+  /** 选中全部模组类型 */
+  checkAll: false,
+
+  /** 选中部分模组类型 */
+  checkIndeterminate: false,
+
+  /**
+   * @desc 已选中的模组类型名称
+   * @type {string[]}
+   */
+  checkedTypes: [],
 
   /** 当前显示的模组列表 */
   modList: [],
@@ -111,9 +157,14 @@ const mods = shallowReactive({
 
 });
 
-// 切换模组类型
-watch(() => state.currModType, (type) => {
-  updateModList(type);
+/** 模组类型名称列表 */
+const modTypeNames = computed(() => {
+  const names = [];
+  const types = mods.types;
+  for (let typeName in types) {
+    names.push(typeName);
+  }
+  return names;
 });
 
 /** 初始化模组列表 */
@@ -199,24 +250,61 @@ async function initModList() {
   }
 }
 
-/** 搜索模组 */
-function searchModList() {
-  updateModList(state.currModType);
+/** 处理模组类型全选 */
+function handleCheckAllChange(isAll = false) {
+  const checked = [];
+  if (isAll) {
+    checked.push.apply(checked, modTypeNames.value);
+  }
+  if (state.checkAll !== isAll) {
+    state.checkAll = isAll;
+  }
+  state.checkedTypes = checked;
+  state.checkIndeterminate = false;
+  updateModList();
+}
+
+/** 处理模组类型选择 */
+function handleCheckItemsChange(names = []) {
+  console.log(111);
+  const checked = names.length;
+  const itemSum = modTypeNames.value.length;
+  state.checkAll = (checked === itemSum);
+  state.checkIndeterminate = (checked > 0 && checked < itemSum);
+  updateModList();
 }
 
 /**
- * @description 切换模组列表
- * @param {string} typeName 模组类型名称
+ * @description 在新窗口中打开链接
+ * @param {string} url
  */
-function updateModList(typeName = 'ALL') {
+function openLink(url) {
+  if (url && typeof url === 'string') {
+    window.open(url, '_blank');
+  } else {
+    $message({
+      message: '打开失败：链接地址无效',
+      type: 'error',
+    });
+  }
+}
 
-  const all = (typeName === 'ALL');
+/** 搜索模组 */
+function searchModList() {
+  updateModList();
+}
+
+/** 更新模组列表内容 */
+function updateModList() {
+
+  const all = state.checkAll;
+  const types = state.checkedTypes;
   const kw = state.searchKeyword.toLocaleLowerCase();
 
   state.modList = mods.list.filter((item) => {
     const { fullName = '', type = '' } = item;
     return (
-      (all || type === typeName) &&
+      (all || types.includes(type)) &&
       (!kw || fullName.toLocaleLowerCase().includes(kw))
     );
   });
@@ -225,8 +313,9 @@ function updateModList(typeName = 'ALL') {
 
 onMounted(() => {
 
+  // 初始化
   initModList().then((success) => {
-    success && updateModList();
+    success && handleCheckAllChange(true);
   });
 
 });
@@ -259,6 +348,13 @@ onMounted(() => {
   }
 }
 
+// 页面导航
+.pages-nav {
+  .el-button {
+    margin: 0.25em;
+  }
+}
+
 // 信息栏
 .list-info {
   p {
@@ -286,6 +382,19 @@ onMounted(() => {
 
 // 模组类型列表
 .mod-types {
+  .el-checkbox {
+    display: flex;
+    margin: 0;
+    width: 100%;
+  }
+
+  .el-checkbox__label {
+    flex-grow: 1;
+    width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .el-radio {
     margin: 0;
     width: 100%;
@@ -298,6 +407,10 @@ onMounted(() => {
   .el-radio-group {
     flex-direction: column;
     width: 100%;
+  }
+
+  .mod-type-item {
+    margin-top: 0.5rem;
   }
 }
 
