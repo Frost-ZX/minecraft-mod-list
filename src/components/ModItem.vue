@@ -48,6 +48,7 @@ const iconText = computed(() => {
   border-radius: var(--block-radius);
   background-color: #FFF;
   font-size: 1rem;
+  cursor: pointer;
 
   &:not(:first-child) {
     margin-top: var(--block-margin);

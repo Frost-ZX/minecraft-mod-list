@@ -106,6 +106,7 @@
         v-for="item of state.modList"
         :key="item.id"
         :data="item"
+        @click="toggleDetail(item)"
       />
     </div>
 
@@ -114,10 +115,47 @@
   <!-- 返回顶部 -->
   <to-top />
 
+  <!-- 模组详情 -->
+  <el-drawer
+    v-model="state.showDetail"
+    class="mod-detail"
+    direction="rtl"
+    append-to-body
+  >
+    <template #header>
+      <h4>模组详情</h4>
+    </template>
+    <template #default>
+      <el-descriptions v-if="state.modInfo" :column="1">
+        <el-descriptions-item
+          label="模组名称"
+        >{{ state.modInfo.fullName }}</el-descriptions-item>
+        <el-descriptions-item
+          label="模组简介"
+        >{{ state.modInfo.description }}</el-descriptions-item>
+        <el-descriptions-item
+          label="模组版本"
+        >{{ state.modInfo.version }}</el-descriptions-item>
+        <el-descriptions-item
+          label="模组作者"
+        >{{ (state.modInfo.authors || []).join(', ') }}</el-descriptions-item>
+        <el-descriptions-item
+          label="授权协议"
+        >{{ state.modInfo.license }}</el-descriptions-item>
+        <el-descriptions-item
+          label="更新时间"
+        >{{ state.modInfo.update }}</el-descriptions-item>
+        <el-descriptions-item
+          label="文件名称"
+        >{{ state.modInfo.file }}</el-descriptions-item>
+      </el-descriptions>
+    </template>
+  </el-drawer>
+
 </template>
 
 <script setup>
-import { computed, shallowReactive, watch, onMounted } from 'vue';
+import { computed, shallowReactive, onMounted } from 'vue';
 
 import { APP_CONFIG } from './assets/js/config';
 import { $message, loadScript } from './assets/js/utils';
@@ -139,11 +177,17 @@ const state = shallowReactive({
    */
   checkedTypes: [],
 
+  /** 当前显示的模组详情信息 */
+  modInfo: null,
+
   /** 当前显示的模组列表 */
   modList: [],
 
   /** 搜索关键词 */
   searchKeyword: '',
+
+  /** 显示模组详情 */
+  showDetail: false,
 
 });
 
@@ -292,6 +336,17 @@ function openLink(url) {
 /** 搜索模组 */
 function searchModList() {
   updateModList();
+}
+
+/** 切换模组详情显示 */
+function toggleDetail(info = null) {
+  if (info) {
+    state.modInfo = info;
+    state.showDetail = true;
+  } else {
+    state.modInfo = null;
+    state.showDetail = false;
+  }
 }
 
 /** 更新模组列表内容 */
@@ -445,5 +500,17 @@ onMounted(() => {
 // 模组列表
 .mod-list {
   margin-top: var(--block-margin);
+}
+
+// 模组详情
+.mod-detail {
+  .el-drawer__header,
+  .el-drawer__body {
+    text-align: left;
+  }
+
+  .el-drawer__header {
+    margin-bottom: 0.5rem;
+  }
 }
 </style>
