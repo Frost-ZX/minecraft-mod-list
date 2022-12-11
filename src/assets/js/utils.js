@@ -2,6 +2,7 @@ import { ElMessage } from 'element-plus';
 
 /** @typedef { import('vue').AppContext } AppContext */
 /** @typedef { import('element-plus').MessageParams } MessageParams */
+/** @typedef { import('/src/jsdoc').ModInfoList } ModInfoList */
 
 /**
  * @description 消息提示
@@ -16,6 +17,22 @@ export function $message(opts = {}, context) {
     type: 'info',
     ...opts,
   }, context);
+}
+
+/**
+ * @description 通过 ID 获取对应的模组信息
+ * @param {ModInfoList} list
+ * @param {string[]}    ids
+ */
+export function getModInfoByIDs(list = [], ids = []) {
+  if (Array.isArray(list) && Array.isArray(ids)) {
+    return list.filter((info) => {
+      return ids.includes(info.id);
+    });
+  } else {
+    console.error('获取失败：参数错误');
+    return [];
+  }
 }
 
 /**

@@ -1,3 +1,6 @@
+/** @typedef { import('/src/jsdoc').NavLinkList } NavLinkList */
+/** @typedef { import('/src/jsdoc').ModTypeList } ModTypeList */
+
 const CONFIG_DEFAULT = {
 
   APP_AUTHOR: 'Frost-ZX',
@@ -6,8 +9,16 @@ const CONFIG_DEFAULT = {
   LIST_AUTHOR: '',
   LIST_VERSION: '',
 
+  /**
+   * @desc 导航链接列表
+   * @type {NavLinkList}
+   */
   NAV_LINKS: [],
 
+  /**
+   * @desc 模组类型列表
+   * @type {ModTypeList}
+   */
   MOD_TYPES: {},
 
 };

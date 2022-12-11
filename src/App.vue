@@ -178,6 +178,20 @@
           <i>{{ modDetail.required ? '是' : '否' }}</i>
         </el-descriptions-item>
 
+        <el-descriptions-item
+          v-if="modDependencies.length > 0"
+          label="依赖于"
+        >
+          <i>{{ modDependencies.join(', ') }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item
+          v-if="modDependents.length > 0"
+          label="被依赖"
+        >
+          <i>{{ modDependents.join(', ') }}</i>
+        </el-descriptions-item>
+
       </el-descriptions>
     </template>
   </el-drawer>
@@ -188,10 +202,14 @@
 import { computed, ref, shallowReactive, onMounted } from 'vue';
 
 import { APP_CONFIG } from './assets/js/config';
-import { $message, loadScript } from './assets/js/utils';
+import { $message, getModInfoByIDs, loadScript } from './assets/js/utils';
 
 import ModItem from './components/ModItem.vue';
 import ToTop from './components/ToTop.vue';
+
+/** @typedef { import('/src/jsdoc').ModInfoItem } ModInfoItem */
+/** @typedef { import('/src/jsdoc').ModInfoList } ModInfoList */
+/** @typedef { import('/src/jsdoc').ModTypeList } ModTypeList */
 
 const state = shallowReactive({
 
@@ -207,7 +225,10 @@ const state = shallowReactive({
    */
   checkedTypes: [],
 
-  /** 当前显示的模组列表 */
+  /**
+   * @desc 当前显示的模组列表
+   * @type {ModInfoList}
+   */
   modList: [],
 
   /** 搜索关键词 */
@@ -220,17 +241,29 @@ const state = shallowReactive({
 
 const mods = shallowReactive({
 
-  /** 模组项目列表 */
+  /**
+   * @desc 模组项目列表
+   * @type {ModInfoList}
+   */
   list: [],
 
-  /** 模组类型列表 */
+  /**
+   * @desc 模组类型列表
+   * @type {ModTypeList}
+   */
   types: {},
 
 });
 
+/** @type { import('vue').Ref<string[]> } */
+const modDependencies = ref([]);
+
+/** @type { import('vue').Ref<string[]> } */
+const modDependents = ref([]);
+
 /**
  * @desc 当前显示的模组详情信息
- * @type { import('vue').Ref<object> }
+ * @type { import('vue').Ref<ModInfoItem> }
  */
 const modDetail = ref(null);
 
@@ -250,17 +283,21 @@ async function initModList() {
 
     const { MOD_TYPES } = APP_CONFIG;
 
+    /** @type {ModInfoList} */
     const modList = [];
+
+    /** @type {ModTypeList} */
     const modTypes = {};
 
     for (let typeName in MOD_TYPES) {
 
       let typeInfo = MOD_TYPES[typeName];
-      let jsURL = typeInfo.file; // JavaScript 文件地址
-      let jsKey = typeInfo.key;  // 在 `window` 对象中的属性名
+      let jsURL = typeInfo.file;
+      let jsKey = typeInfo.key;
 
-      let load = await loadScript(jsURL);
+      /** @type {ModInfoList} */
       let list = null;
+      let load = await loadScript(jsURL);
 
       // 处理类型信息默认值
       typeInfo.label = typeInfo.label ?? '未知';
@@ -291,9 +328,10 @@ async function initModList() {
             // 记录模组 ID
             usedIds.push(id);
             // 更新模组信息
+            modInfo.dependents = [];
             modInfo.fullName = (pName + (sName ? `（${sName}）` : ''));
             modInfo.required = isRequired;
-            modInfo.type = typeName;
+            modInfo.typeName = typeName;
           } else {
             // 提示重复信息
             $message({
@@ -312,6 +350,37 @@ async function initModList() {
 
       }
 
+    }
+
+    let idIndex = {};
+    let depMods = [];
+
+    // 可选前置模组 ID 的前缀
+    let prefix = new RegExp(/^#/);
+
+    // 记录 ID 索引和模组信息
+    for (let i = 0; i < modList.length; i++) {
+      let info = modList[i];
+      // 记录索引
+      idIndex[info.id] = i;
+      // 记录有前置模组的模组
+      if (Array.isArray(info.dependencies)) {
+        depMods.push(info);
+      }
+    }
+
+    // 处理模组依赖信息
+    for (let i = 0; i < depMods.length; i++) {
+      let info = depMods[i];
+      let id = info.id;
+      let depList = info.dependencies;
+      // 添加当前模组 ID 到前置模组的依赖 ID 列表
+      for (let depId of depList) {
+        let depInfo = null;
+        depId = depId.replace(prefix, '');
+        depInfo = modList[idIndex[depId]];
+        depInfo && depInfo.dependents.push(id);
+      }
     }
 
     // 更新数据
@@ -343,7 +412,6 @@ function handleCheckAllChange(isAll = false) {
 
 /** 处理模组类型选择 */
 function handleCheckItemsChange(names = []) {
-  console.log(111);
   const checked = names.length;
   const itemSum = modTypeNames.value.length;
   state.checkAll = (checked === itemSum);
@@ -371,9 +439,21 @@ function searchModList() {
   updateModList();
 }
 
-/** 切换模组详情显示 */
+/**
+ * @description 切换模组详情显示
+ * @param {ModInfoItem} info
+ */
 function toggleDetail(info = null) {
   if (info) {
+    let list = mods.list;
+    let dependencies = getModInfoByIDs(list, info.dependencies);
+    let dependents = getModInfoByIDs(list, info.dependents);
+    modDependencies.value = dependencies.map((m) => {
+      return m.fullName;
+    });
+    modDependents.value = dependents.map((m) => {
+      return m.fullName;
+    });
     modDetail.value = info;
     state.showDetail = true;
   } else {
@@ -390,9 +470,9 @@ function updateModList() {
   const kw = state.searchKeyword.toLocaleLowerCase();
 
   state.modList = mods.list.filter((item) => {
-    const { fullName = '', type = '' } = item;
+    const { fullName = '', typeName = '' } = item;
     return (
-      (all || types.includes(type)) &&
+      (all || types.includes(typeName)) &&
       (!kw || fullName.toLocaleLowerCase().includes(kw))
     );
   });
