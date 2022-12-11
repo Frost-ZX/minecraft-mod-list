@@ -6,6 +6,8 @@ const CONFIG_DEFAULT = {
   LIST_AUTHOR: '',
   LIST_VERSION: '',
 
+  NAV_LINKS: [],
+
   MOD_TYPES: {},
 
 };

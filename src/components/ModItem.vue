@@ -7,7 +7,7 @@
     <!-- 模组信息 -->
     <div class="mod-info">
       <div class="mod-name">{{ data.fullName }}</div>
-      <div class="mod-desc">{{ data.description || '...' }}</div>
+      <div class="mod-desc">{{ data.description || '' }}</div>
       <div class="mod-version">
         <span v-show="data.version">V{{ data.version }}</span>
         <span v-show="data.update"> ({{ data.update }})</span>
@@ -48,10 +48,17 @@ const iconText = computed(() => {
   border-radius: var(--block-radius);
   background-color: #FFF;
   font-size: 1rem;
+  transform: translateY(0);
+  transition: box-shadow 0.25s, transform 0.25s;
   cursor: pointer;
 
   &:not(:first-child) {
     margin-top: var(--block-margin);
+  }
+
+  &:hover {
+    box-shadow: var(--block-shadow-darker);
+    transform: translateY(-0.125rem);
   }
 
   &.required::before {

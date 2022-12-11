@@ -8,7 +8,7 @@
       <div class="block-title">列表信息</div>
       <div class="block-content">
         <p>
-          <span class="label">列表作者</span>
+          <span class="label">列表编辑</span>
           <span class="text">{{ APP_CONFIG.LIST_AUTHOR || '无' }}</span>
         </p>
         <p>
@@ -86,7 +86,7 @@
       <el-input
         v-model="state.searchKeyword"
         class="search-input"
-        placeholder="搜索..."
+        placeholder="搜索模组名称"
         :clearable="true"
         @blur="searchModList"
         @keydown.enter="searchModList"
@@ -126,28 +126,58 @@
       <h4>模组详情</h4>
     </template>
     <template #default>
-      <el-descriptions v-if="state.modInfo" :column="1">
+      <el-descriptions v-if="modDetail" :column="1">
+
+        <el-descriptions-item v-if="modDetail.fullName" label="模组 ID">
+          <i>{{ modDetail.id }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item v-if="modDetail.fullName" label="模组名称">
+          <i>{{ modDetail.fullName }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item v-if="modDetail.description" label="模组简介">
+          <i>{{ modDetail.description }}</i>
+        </el-descriptions-item>
+
         <el-descriptions-item
-          label="模组名称"
-        >{{ state.modInfo.fullName }}</el-descriptions-item>
-        <el-descriptions-item
-          label="模组简介"
-        >{{ state.modInfo.description }}</el-descriptions-item>
-        <el-descriptions-item
-          label="模组版本"
-        >{{ state.modInfo.version }}</el-descriptions-item>
-        <el-descriptions-item
-          label="模组作者"
-        >{{ (state.modInfo.authors || []).join(', ') }}</el-descriptions-item>
-        <el-descriptions-item
-          label="授权协议"
-        >{{ state.modInfo.license }}</el-descriptions-item>
-        <el-descriptions-item
-          label="更新时间"
-        >{{ state.modInfo.update }}</el-descriptions-item>
-        <el-descriptions-item
-          label="文件名称"
-        >{{ state.modInfo.file }}</el-descriptions-item>
+          v-if="modDetail.links"
+          label="模组链接"
+        >
+          <el-link
+            v-for="(url, index) in modDetail.links"
+            :key="index"
+            :href="url"
+            :underline="false"
+            target="_blank"
+            type="primary"
+          >{{ url }}</el-link>
+        </el-descriptions-item>
+
+        <el-descriptions-item v-if="modDetail.version" label="模组版本">
+          <i>{{ modDetail.version }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item v-if="modDetail.authors" label="模组作者">
+          <i>{{ modDetail.authors.join(', ') }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item v-if="modDetail.license" label="许可证">
+          <i>{{ modDetail.license }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item v-if="modDetail.update" label="更新时间">
+          <i>{{ modDetail.update }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item v-if="modDetail.file" label="文件名称">
+          <i>{{ modDetail.file }}</i>
+        </el-descriptions-item>
+
+        <el-descriptions-item label="是否必需">
+          <i>{{ modDetail.required ? '是' : '否' }}</i>
+        </el-descriptions-item>
+
       </el-descriptions>
     </template>
   </el-drawer>
@@ -155,7 +185,7 @@
 </template>
 
 <script setup>
-import { computed, shallowReactive, onMounted } from 'vue';
+import { computed, ref, shallowReactive, onMounted } from 'vue';
 
 import { APP_CONFIG } from './assets/js/config';
 import { $message, loadScript } from './assets/js/utils';
@@ -177,9 +207,6 @@ const state = shallowReactive({
    */
   checkedTypes: [],
 
-  /** 当前显示的模组详情信息 */
-  modInfo: null,
-
   /** 当前显示的模组列表 */
   modList: [],
 
@@ -200,6 +227,12 @@ const mods = shallowReactive({
   types: {},
 
 });
+
+/**
+ * @desc 当前显示的模组详情信息
+ * @type { import('vue').Ref<object> }
+ */
+const modDetail = ref(null);
 
 /** 模组类型名称列表 */
 const modTypeNames = computed(() => {
@@ -341,10 +374,10 @@ function searchModList() {
 /** 切换模组详情显示 */
 function toggleDetail(info = null) {
   if (info) {
-    state.modInfo = info;
+    modDetail.value = info;
     state.showDetail = true;
   } else {
-    state.modInfo = null;
+    modDetail.value = null;
     state.showDetail = false;
   }
 }
@@ -488,7 +521,7 @@ onMounted(() => {
   background-color: #FFF;
 
   .search-input {
-    max-width: 20rem;;
+    max-width: 20rem;
 
     .el-input__prefix {
       font-size: 1.125rem;
@@ -504,6 +537,9 @@ onMounted(() => {
 
 // 模组详情
 .mod-detail {
+  width: 32rem !important;
+  max-width: 100%;
+
   .el-drawer__header,
   .el-drawer__body {
     text-align: left;
@@ -511,6 +547,29 @@ onMounted(() => {
 
   .el-drawer__header {
     margin-bottom: 0.5rem;
+  }
+
+  .el-descriptions__cell {
+    display: flex;
+  }
+
+  .el-descriptions__label {
+    flex-shrink: 0;
+    width: 4.5em;
+    text-align: right;
+  }
+
+  .el-descriptions__content {
+    flex-grow: 1;
+    user-select: text;
+
+    i {
+      font-style: normal;
+    }
+  }
+
+  .el-link {
+    word-break: break-all;
   }
 }
 </style>
