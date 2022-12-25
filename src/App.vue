@@ -179,17 +179,35 @@
         </el-descriptions-item>
 
         <el-descriptions-item
-          v-if="modDependencies.length > 0"
+          v-if="hasDependencies"
           label="依赖于"
         >
-          <i>{{ modDependencies.join(', ') }}</i>
+          <i
+            v-text="requiredDependencies.join(', ')"
+            class="mod-required"
+            title="必需模组"
+          ></i>
+          <i
+            v-text="optionalDependencies.join(', ')"
+            class="mod-optional"
+            title="可选模组"
+          ></i>
         </el-descriptions-item>
 
         <el-descriptions-item
-          v-if="modDependents.length > 0"
+          v-if="hasDependents"
           label="被依赖"
         >
-          <i>{{ modDependents.join(', ') }}</i>
+          <i
+            v-text="requiredDependents.join(', ')"
+            class="mod-required"
+            title="必需模组"
+          ></i>
+          <i
+            v-text="optionalDependents.join(', ')"
+            class="mod-optional"
+            title="可选模组"
+          ></i>
         </el-descriptions-item>
 
       </el-descriptions>
@@ -255,17 +273,51 @@ const mods = shallowReactive({
 
 });
 
-/** @type { import('vue').Ref<string[]> } */
-const modDependencies = ref([]);
+/**
+ * @desc 可选前置模组名称列表
+ * @type { import('vue').Ref<string[]> }
+ */
+const optionalDependencies = ref([]);
 
-/** @type { import('vue').Ref<string[]> } */
-const modDependents = ref([]);
+/**
+ * @desc 必需前置模组名称列表
+ * @type { import('vue').Ref<string[]> }
+ */
+const requiredDependencies = ref([]);
+
+/**
+ * @desc 可选依赖模组名称列表
+ * @type { import('vue').Ref<string[]> }
+ */
+ const optionalDependents = ref([]);
+
+/**
+ * @desc 必需依赖模组名称列表
+ * @type { import('vue').Ref<string[]> }
+ */
+const requiredDependents = ref([]);
 
 /**
  * @desc 当前显示的模组详情信息
  * @type { import('vue').Ref<ModInfoItem> }
  */
 const modDetail = ref(null);
+
+/** 当前模组是否存在前置模组 */
+const hasDependencies = computed(() => {
+  return (
+    optionalDependencies.value.length > 0 ||
+    requiredDependencies.value.length > 0
+  );
+});
+
+/** 当前模组是否存在依赖模组 */
+const hasDependents = computed(() => {
+  return (
+    optionalDependents.value.length > 0 ||
+    requiredDependents.value.length > 0
+  );
+});
 
 /** 模组类型名称列表 */
 const modTypeNames = computed(() => {
@@ -328,7 +380,10 @@ async function initModList() {
             // 记录模组 ID
             usedIds.push(id);
             // 更新模组信息
-            modInfo.dependents = [];
+            modInfo.dependents = {
+              optional: [],
+              required: [],
+            };
             modInfo.fullName = (pName + (sName ? `（${sName}）` : ''));
             modInfo.required = isRequired;
             modInfo.typeName = typeName;
@@ -355,31 +410,36 @@ async function initModList() {
     let idIndex = {};
     let depMods = [];
 
-    // 可选前置模组 ID 的前缀
-    let prefix = new RegExp(/^#/);
-
     // 记录 ID 索引和模组信息
     for (let i = 0; i < modList.length; i++) {
       let info = modList[i];
       // 记录索引
       idIndex[info.id] = i;
       // 记录有前置模组的模组
-      if (Array.isArray(info.dependencies)) {
+      if (info.dependencies) {
         depMods.push(info);
       }
     }
 
     // 处理模组依赖信息
     for (let i = 0; i < depMods.length; i++) {
-      let info = depMods[i];
-      let id = info.id;
-      let depList = info.dependencies;
+      let modInfo = depMods[i];
+      let modId = modInfo.id;
+      let depIds = modInfo.dependencies;
+      let optIds = depIds.optional || [];
+      let reqIds = depIds.required || [];
       // 添加当前模组 ID 到前置模组的依赖 ID 列表
-      for (let depId of depList) {
-        let depInfo = null;
-        depId = depId.replace(prefix, '');
-        depInfo = modList[idIndex[depId]];
-        depInfo && depInfo.dependents.push(id);
+      for (let depId of optIds) {
+        let depInfo = modList[idIndex[depId]];
+        if (depInfo) {
+          depInfo.dependents.optional.push(modId);
+        }
+      }
+      for (let depId of reqIds) {
+        let depInfo = modList[idIndex[depId]];
+        if (depInfo) {
+          depInfo.dependents.required.push(modId);
+        }
       }
     }
 
@@ -444,22 +504,40 @@ function searchModList() {
  * @param {ModInfoItem} info
  */
 function toggleDetail(info = null) {
-  if (info) {
-    let list = mods.list;
-    let dependencies = getModInfoByIDs(list, info.dependencies);
-    let dependents = getModInfoByIDs(list, info.dependents);
-    modDependencies.value = dependencies.map((m) => {
-      return m.fullName;
-    });
-    modDependents.value = dependents.map((m) => {
-      return m.fullName;
-    });
-    modDetail.value = info;
-    state.showDetail = true;
-  } else {
+
+  if (!info) {
     modDetail.value = null;
     state.showDetail = false;
+    return;
   }
+
+  let { list } = mods;
+  let { dependencies, dependents } = info;
+
+  // 获取信息
+  let optDependencies = getModInfoByIDs(list, dependencies?.optional)
+  let reqDependencies = getModInfoByIDs(list, dependencies?.required)
+  let optDependents = getModInfoByIDs(list, dependents?.optional)
+  let reqDependents = getModInfoByIDs(list, dependents?.required)
+
+  // 提取名称
+  optionalDependencies.value = optDependencies.map((m) => {
+    return m.fullName;
+  });
+  requiredDependencies.value = reqDependencies.map((m) => {
+    return m.fullName;
+  });
+  optionalDependents.value = optDependents.map((m) => {
+    return m.fullName;
+  });
+  requiredDependents.value = reqDependents.map((m) => {
+    return m.fullName;
+  });
+
+  // 更新详情数据
+  modDetail.value = info;
+  state.showDetail = true;
+
 }
 
 /** 更新模组列表内容 */
@@ -650,6 +728,14 @@ onMounted(() => {
 
   .el-link {
     word-break: break-all;
+  }
+
+  .mod-optional, .mod-required {
+    display: block;
+  }
+
+  .mod-required {
+    font-weight: bold;
   }
 }
 </style>

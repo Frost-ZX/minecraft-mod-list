@@ -9,7 +9,9 @@
 /**
  * @typedef  {object}   ModInfoItem
  * @property {string[]} authors      作者名称列表
- * @property {string[]} dependencies 前置模组 ID 列表
+ * @property {object}   dependencies 前置模组 ID 列表
+ * @property {string[]} dependencies.optional
+ * @property {string[]} dependencies.required
  * @property {string}   description  模组简介
  * @property {string}   file         模组文件名
  * @property {string}   id           模组 ID
@@ -18,7 +20,9 @@
  * @property {string[]} names        模组名称（主要、次要）
  * @property {string}   update       更新日期
  * @property {string}   version      模组版本
- * @property {string[]} [dependents] 被依赖模组 ID 列表（处理后生成）
+ * @property {object}   [dependents] 被依赖模组 ID 列表（处理后生成）
+ * @property {string[]} [dependents.optional]
+ * @property {string[]} [dependents.required]
  * @property {string}   [fullName]   模组名称（处理后生成）
  * @property {boolean}  [required]   是否必需（处理后生成）
  * @property {string}   [typeName]   类型名称（处理后生成）
