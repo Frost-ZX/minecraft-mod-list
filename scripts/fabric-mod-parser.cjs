@@ -71,6 +71,7 @@ function getDateString(date) {
       file: fileName,
       id: infoJSON.id,
       license: infoJSON.license,
+      links: [],
       names: [infoJSON.name],
       update: getDateString(jsonEntry.header.time),
       version: infoJSON.version,
@@ -83,6 +84,8 @@ function getDateString(date) {
         links.push(contact[key]);
       }
       data.links = links;
+    } else {
+      data.links = undefined;
     }
 
     result.push(data);
