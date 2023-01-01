@@ -142,7 +142,7 @@
 
         <el-descriptions-item
           v-if="modDetail.links"
-          label="模组链接"
+          label="相关链接"
         >
           <el-link
             v-for="(url, index) in modDetail.links"
